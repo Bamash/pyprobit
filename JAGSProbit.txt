@@ -1,0 +1,29 @@
+model_code_template = """ 
+model {{
+  # Declare likelihood for Y, relationship between Y and Y_s
+  for (i in 1:n) {{
+    for (q in 1:{n_outputs}) {{  # Extend loop for the third outcome
+      Y[i, q] ~ dinterval(Z[i, q], 0)
+      mu[i, q] <- X[i,] %*% Beta[, q]
+    }}
+    Z[i, 1:{n_outputs}] ~ dmnorm.vcov(mu[i, ], prec[1:{n_outputs}, 1:{n_outputs}])  # Extend to accommodate the third outcome
+  }}
+
+  # Prior on Betas
+  for (q in 1:{n_outputs}) {{  # Extend loop for the third outcome
+    Beta[1:P, q] ~ dmnorm(b_0, B_0)
+  }}
+
+  # Prior on covariance matrix
+  prec[1:{n_outputs}, 1:{n_outputs}] <- cov[, ]
+  {covariance_block}
+  # Flat priors on all parameters which could, of course, be made more informative.
+  for (i in 1:{n_outputs}) {{
+    sigma[i] = 1  # Extend to accommodate the third outcome
+  }}
+  
+  rho12 ~ dunif(-1, 1)  # Prior for rho12
+  rho13 ~ dunif(-1, 1)  # Prior for rho13
+  rho23 ~ dunif(-1, 1)  # Prior for rho23
+}}
+"""
